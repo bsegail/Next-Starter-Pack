@@ -1,0 +1,20 @@
+@import './variables.scss';
+@import './typography.scss';
+
+@mixin container($padding: 116px) {
+  display: block;
+  padding-left: $padding;
+  padding-right: $padding;
+  width: 100%;
+  will-change: padding;
+  transition: 0.03s padding;
+
+  @media(max-width: 1024px) {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+.container {
+  @include container;
+}

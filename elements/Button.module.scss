@@ -1,0 +1,37 @@
+@import '../imports';
+
+.button {
+  display: flex;
+  align-items: center;
+  border: 0;
+  padding: 6px 12px;
+  line-height: 1;
+  font-weight: 700;
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  //outline: none;
+  margin: 0 8px;
+  background-color: $primary-color;
+  color: #FFFFFF;
+  text-transform: uppercase;
+
+  &:hover {
+    background-color: darken($primary-color, 10);
+  }
+
+  &:focus {
+    background-color: darken($primary-color, 10);
+  }
+
+
+}
+
+
+.workingButton {
+  .lottie {
+    margin-right: 8px;
+  }
+}
+

@@ -1,0 +1,21 @@
+@import './imports.scss';
+
+body {
+  padding: 0;
+  margin: 0;
+  font-family: $primary-font;
+}
+
+main {
+  padding: 0;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+  transition: 0.03s all;
+}
+
+a:visited {
+  color: inherit;
+}

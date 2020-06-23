@@ -1,0 +1,8 @@
+@import '../imports';
+
+.footer {
+  @include container;
+  display: flex;
+  background-color: #f8f8f8;
+  height: $footer-height;
+}

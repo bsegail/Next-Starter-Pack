@@ -1,0 +1,9 @@
+@import '../imports';
+
+.main {
+  @include container();
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: calc(100vh - #{$header-height} - #{$footer-height});
+}
