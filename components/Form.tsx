@@ -1,81 +1,101 @@
-import React from 'react';
-import {Field, FieldProps, Formik} from 'formik'
-import { keyBy, map } from 'lodash';
-import {FormikHelpers} from "formik/dist/types";
-import uuid from 'uuid'
+import React, {FormEvent, useEffect, useState} from 'react';
+import {compact, map, values} from 'lodash'
+import {FormError, formService} from "../services/FormService";
 
-const Input: React.FC<{
-    onChange: () => any,
-    value: any,
-    id: string
-}> = ({ onChange, value, id }) => {
-    return <div >
-        <input id={id}type='text' onChange={onChange} value={value} />
-    </div>
-}
-
-const FormikFieldWrapper: (ComponentToRender: React.FC<any>) => React.FC<FieldProps> = (ComponentToRender) => ({ field, form, meta }) => {
-    return (
-        <ComponentToRender {...field} {...form} {...meta} />
-    )
-}
-
-export enum Fields {
-    Input = 'Input'
-}
-
-
-type fieldMap = {
-    [K in Fields]: React.FC<any>
-}
-
-const fieldTypes: fieldMap = {
-    [Fields.Input]: Input
-}
-
-
-type FieldDefinition = {
+type FieldConsumer = {
     name: string,
-    type: Fields,
-    default?: any,
+    type: string,
+    validation?: (value: any) => FormError | undefined
+    props?: any
 }
+
+
+const availableFields = formService.fields
 
 const Form: React.FC<{
-    fields: FieldDefinition[],
-    onSubmit: (fieldsWithValues: any) => any
-}> = ({ fields, onSubmit, children }) => {
+    fields: FieldConsumer[],
+    onSubmit: (values: any, errorState: any) => any
+    onChange?: (changedValue: any, allValues: any, errorState: any) => any
+}> = ({fields, onSubmit, onChange, children}) => {
+    const [formState, setFormState] = useState({})
+    const [errorState, setErrorState] = useState<{}>({})
+    const [showErrors, setShowErrors] = useState(false)
 
-    const initialValues = map(keyBy(fields, 'name'), (field) => field.default || undefined )
+    const handleChangeOfField = (name: string, value: any, formError?: FormError) => {
+        setFormState((prevState => {
+            return {...prevState, [name]: value}
+        }))
+        setErrorState((prevState => {
+            if (formError?.message) {
+                return {...prevState, [name]: formError?.message}
+            } else {
+                const {[name]: itemToRemove, ...newFormState} = errorState as any
+                return {...newFormState}
+            }
+        }))
+        onChange && onChange({[name]: value}, formState, errorState)
+    }
 
-    const handleSubmit = (values: any, formikHelpers: FormikHelpers<any>) => {
-        console.log('values', values)
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault()
+        console.log(errorState)
+        if (compact(values(errorState)).length === 0) {
+            onSubmit(formState, errorState)
+            setShowErrors(false)
+        } else {
+            setShowErrors(true)
+        }
     }
 
     return (
-        <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-            {({
-                  values,
-                  errors,
-                  touched,
-                  handleChange,
-                  handleBlur,
-                  handleSubmit,
-                  isSubmitting,
-                  /* and other goodies */
-              }) => {
-                console.log('values', values)
-                return (
-              <form onSubmit={handleSubmit}>
-                  {
-                      map(fields, (field) => {
-                          const Component = fieldTypes[field.type]
-                          return <Component onChange={handleChange} id={1} />
-                      })
-                  }
-                  { children }
-              </form>
-            )}}
-        </Formik>
+        <form onSubmit={handleSubmit}>
+            {
+                map(fields, (field: FieldConsumer) => (
+                    <Field
+                        key={field.name}
+                        onChange={handleChangeOfField}
+                        showErrors={showErrors}
+                        {...availableFields[field.type]}
+                        {...field}
+                    />
+                ))
+            }
+            {children}
+        </form>
+    )
+}
+
+const Field: React.FC<FieldConsumer & {
+    component: React.ElementType
+    onChange: (name: string, value: any, error?: FormError) => any,
+    validation?: (value: any) => FormError | undefined,
+    showErrors: boolean
+}> = ({name, component: Component, onChange, validation, showErrors, props}) => {
+    const [value, setValue] = useState()
+    const [error, setError] = useState<FormError>()
+    const handleChange = (v: any) => {
+        let formError;
+        if (validation) {
+            formError = validation(v)
+        }
+        setValue(v)
+        onChange(name, v, formError)
+    }
+
+    useEffect(() => {
+        let formError;
+        if (validation) {
+            formError = validation(value)
+        }
+        setError(formError)
+    }, [showErrors])
+
+
+    return (
+        <div>
+            <Component onChange={handleChange} {...props} />
+            {showErrors && <p>{error?.message}</p>}
+        </div>
     )
 }
 
