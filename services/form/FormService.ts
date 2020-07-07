@@ -1,6 +1,5 @@
 import {set, unset} from "lodash";
 import React from "react";
-import Input from "../elements/Input";
 
 export type FormError = {
     message: string
@@ -9,7 +8,7 @@ export type FormError = {
 type FieldDefinition = {
     type: string,
     component: React.ElementType,
-    validation?: (value: any) => FormError | undefined
+    validation?: (value: any) => FormError | true
 }
 
 class FormService {
@@ -26,12 +25,3 @@ class FormService {
 
 export const formService = new FormService()
 
-formService.registerFieldType({
-    type: 'text',
-    component: Input,
-    validation: (myString: any) => {
-        if (myString?.length < 8) {
-            return { message: 'String must be > 8 characters' }
-        }
-    }
-})
